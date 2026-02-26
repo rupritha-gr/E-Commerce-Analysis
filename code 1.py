@@ -71,4 +71,5 @@ print("="*30)
 print(f"Total Transactions: {len(df):,}")
 print(f"Total Revenue:      ${df[revenue_col].sum():,.2f}")
 print(f"Busiest Day:        {df['day_name'].value_counts().idxmax()}")
+
 print("="*30)
