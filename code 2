@@ -1,0 +1,79 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from statsmodels.tsa.seasonal import seasonal_decompose
+from prophet import Prophet
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
+# 1. SETUP & ROBUST DATA LOADING
+path = r"C:\Users\rupri\e commerece\e_commerce_electronic_sales_2025_dataset.csv"
+df = pd.read_csv(path)
+
+# Clean column names (strip spaces, lowercase)
+df.columns = df.columns.str.strip().str.lower()
+
+# Map columns based on your dataset: ['date', 'order_value', 'quantity', 'customer_id']
+date_col = 'date'
+revenue_col = 'order_value'
+customer_col = 'customer_id'
+
+# Convert date with the fix for "19-12-2025"
+df[date_col] = pd.to_datetime(df[date_col], dayfirst=True)
+
+# 2. ALGORITHM 1: TIME-SERIES FORECASTING (Prophet)
+# Prepare data for Prophet (needs columns 'ds' and 'y')
+daily_sales = df.groupby(date_col)[revenue_col].sum().reset_index()
+prophet_df = daily_sales.rename(columns={date_col: 'ds', revenue_col: 'y'})
+
+# Initialize and fit
+m = Prophet(yearly_seasonality=True, weekly_seasonality=True)
+m.fit(prophet_df)
+
+# Forecast the next 30 days
+future = m.make_future_dataframe(periods=30)
+forecast = m.predict(future)
+
+# Plot Forecast
+fig1 = m.plot(forecast)
+plt.title("30-Day Sales Forecast (Prophet Model)")
+plt.show()
+
+# 3. ALGORITHM 2: CUSTOMER SEGMENTATION (K-Means)
+# Calculate RFM Metrics (Recency, Frequency, Monetary)
+latest_date = df[date_col].max() + pd.Timedelta(days=1)
+rfm = df.groupby(customer_col).agg({
+    date_col: lambda x: (latest_date - x.max()).days,
+    'order_id': 'count',
+    revenue_col: 'sum'
+}).rename(columns={date_col: 'Recency', 'order_id': 'Frequency', revenue_col: 'Monetary'})
+
+# Scale for K-Means
+scaler = StandardScaler()
+rfm_scaled = scaler.fit_transform(rfm)
+
+# Apply K-Means Clustering (3 Segments)
+kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+rfm['Cluster'] = kmeans.fit_predict(rfm_scaled)
+
+# Visualize Segments
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=rfm, x='Frequency', y='Monetary', hue='Cluster', palette='viridis')
+plt.title("Customer Segmentation: High-Value vs. Occasional Shoppers")
+plt.show()
+
+# 4. ALGORITHM 3: SEASONAL DECOMPOSITION (Statsmodels)
+daily_series = daily_sales.set_index(date_col).asfreq('D').fillna(0)
+decomposition = seasonal_decompose(daily_series[revenue_col], model='additive', period=7)
+decomposition.plot()
+plt.show()
+
+# 5. FINAL SUMMARY INSIGHTS
+print("\n" + "="*40)
+print("     ENHANCED ANALYSIS SUMMARY")
+print("="*40)
+print(f"Prophet Forecast: Predicted next 30 days of revenue.")
+print(f"K-Means: Identified {rfm['Cluster'].nunique()} distinct customer segments.")
+print(f"Key Segment (High Spenders) Count: {len(rfm[rfm['Cluster'] == 2])}")
+print("="*40)

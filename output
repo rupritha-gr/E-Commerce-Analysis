@@ -1,0 +1,10 @@
+output 1
+ PURCHASE PATTERN SUMMARY
+Total Transactions: 108,300
+Total Revenue:      $133,323,271.88
+Busiest Day:        Wednesday
+
+output 2
+Prophet Forecast: Predicted next 30 days of revenue.
+K-Means: Identified 3 distinct customer segments.
+Key Segment (High Spenders) Count: 5765
