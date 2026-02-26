@@ -33,13 +33,6 @@ Peak Patterns: Identified that the highest transaction volume occurs between 6 P
 
 Seasonality: Detected a 15% lift in weekend sales compared to weekday baselines.
 
-📂 Project Structure
-Plaintext
-├── data/                   # Dataset (CSV)
-├── notebooks/              # Jupyter Notebook with full analysis
-├── src/                    # Python scripts for cleaning & modeling
-├── sql/                    # SQL queries for MoM growth & KPIs
-└── README.md               # Project documentation
 📈 Business Impact
 Inventory Optimization: Insights allow for better stock allocation during identified peak months.
 
